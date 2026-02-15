@@ -8,18 +8,18 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         .bg-ryanair-blue { background-color: #003399; }
         .text-ryanair-yellow { color: #f1c40f; }
-        .tab-active { color: #f1c40f; border-bottom: 4px solid #f1c40f; font-weight: 900; }
-        .glass-card { background: white; border-radius: 1.25rem; box-shadow: 0 4px 20px -2px rgba(0, 51, 153, 0.1); border: 1px solid #e2e8f0; }
+        .tab-active { color: #f1c40f !important; border-bottom: 4px solid #f1c40f; font-weight: 900; }
+        .glass-card { background: #ffffff; border-radius: 1.25rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; border-top: 5px solid #003399; color: #1e293b; }
         #map, #briefingMap { height: 480px; width: 100%; border-radius: 1rem; z-index: 1; border: 4px solid white; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .hidden { display: none; }
-        .duty-card { border-left: 6px solid #003399; transition: all 0.2s; }
-        .duty-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -5px rgba(0, 51, 153, 0.2); }
-        .grade-executive { color: #3b82f6; }
-        .grade-standard { color: #10b981; }
-        .grade-structural { color: #ef4444; font-weight: 900; animation: pulse 1s infinite; }
+        .duty-card { border-left: 6px solid #003399; transition: all 0.2s; background: white; color: #1e293b; }
+        .duty-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px rgba(0, 51, 153, 0.1); }
+        .grade-executive { color: #2563eb; }
+        .grade-standard { color: #059669; }
+        .grade-structural { color: #dc2626; font-weight: 900; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
@@ -35,18 +35,18 @@
             </div>
             <div class="flex items-center gap-4">
                 <div id="dbStatus" class="text-[10px] bg-red-600 px-3 py-1 rounded-full text-white font-black uppercase tracking-widest">DB: OFFLINE</div>
-                <button onclick="masterReset()" class="text-[10px] bg-red-500/20 text-red-100 border border-red-500/40 px-3 py-1 rounded font-black hover:bg-red-600 transition-all">MASTER RESET</button>
+                <button onclick="masterReset()" class="text-[10px] bg-red-500/20 text-red-100 border border-red-500/40 px-3 py-1 rounded font-black hover:bg-red-600 transition-all uppercase">Master Reset</button>
             </div>
         </div>
     </nav>
 
-    <div class="bg-ryanair-blue/95 backdrop-blur-md text-white/70 border-t border-blue-400/30">
+    <div class="bg-ryanair-blue text-white/70 border-t border-blue-400/30">
         <div class="container mx-auto flex space-x-8 px-4 text-[11px] font-black uppercase tracking-[0.15em] overflow-x-auto">
-            <button onclick="showTab('profile')" id="tab-profile" class="py-4 tab-active transition-all">My Profile</button>
-            <button onclick="showTab('schedules')" id="tab-schedules" class="py-4 hover:text-white transition-all">Schedules</button>
-            <button onclick="showTab('dispatch')" id="tab-dispatch" class="py-4 hover:text-white transition-all">Dispatch</button>
-            <button onclick="showTab('pirep')" id="tab-pirep" class="py-4 hover:text-white transition-all">File Pirep</button>
-            <button onclick="showTab('logbook')" id="tab-logbook" class="py-4 hover:text-white transition-all">Logbook</button>
+            <button onclick="showTab('profile')" id="tab-profile" class="py-4 tab-active">Profile</button>
+            <button onclick="showTab('schedules')" id="tab-schedules" class="py-4 hover:text-white">Schedules</button>
+            <button onclick="showTab('dispatch')" id="tab-dispatch" class="py-4 hover:text-white">Dispatch</button>
+            <button onclick="showTab('pirep')" id="tab-pirep" class="py-4 hover:text-white">Pirep</button>
+            <button onclick="showTab('logbook')" id="tab-logbook" class="py-4 hover:text-white">Logbook</button>
         </div>
     </div>
 
@@ -55,77 +55,67 @@
         <div id="view-profile" class="space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
-                <div class="lg:col-span-1 glass-card p-8 text-center bg-gradient-to-b from-white to-slate-50">
-                    <div class="relative w-28 h-28 mx-auto mb-4">
+                <div class="lg:col-span-1 glass-card p-8 text-center">
+                    <div class="relative w-24 h-24 mx-auto mb-4">
                         <div class="absolute inset-0 bg-ryanair-blue rounded-full rotate-6 shadow-xl"></div>
-                        <div class="absolute inset-0 bg-white border-4 border-ryanair-blue rounded-full flex items-center justify-center">
-                            <span class="text-3xl font-black text-ryanair-blue italic tracking-tighter">RYR</span>
+                        <div class="absolute inset-0 bg-white border-2 border-ryanair-blue rounded-full flex items-center justify-center">
+                            <span class="text-2xl font-black text-ryanair-blue italic">RYR</span>
                         </div>
                     </div>
-                    <input type="text" id="pilotName" class="text-2xl font-black text-slate-800 text-center w-full mb-1 outline-none bg-transparent" value="New Pilot" onchange="localStorage.setItem('pilot_name', this.value)">
-                    <p id="pilotRank" class="text-[10px] font-black text-blue-600 uppercase tracking-[0.3em] mb-6">Junior First Officer</p>
+                    <input type="text" id="pilotName" class="text-xl font-black text-slate-800 text-center w-full mb-1 outline-none bg-transparent" value="New Pilot" onchange="localStorage.setItem('pilot_name', this.value)">
+                    <p id="pilotRank" class="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-6">Junior First Officer</p>
                     
                     <div class="bg-green-600 rounded-xl p-4 text-white shadow-lg mb-4">
                         <p class="text-[9px] uppercase font-black opacity-80 mb-1 tracking-widest">Total Earnings</p>
-                        <p id="totalEarnings" class="text-3xl font-black">£0.00</p>
+                        <p id="totalEarnings" class="text-3xl font-black text-white">£0.00</p>
                     </div>
 
                     <div class="bg-slate-900 rounded-xl p-4 text-white shadow-2xl">
-                        <p class="text-[9px] uppercase font-black text-ryanair-yellow mb-1 tracking-widest">Operational Zulu Time</p>
+                        <p class="text-[9px] uppercase font-black text-ryanair-yellow mb-1 tracking-widest">Zulu Time</p>
                         <p id="zuluClock" class="text-2xl font-black tabular-nums">00:00:00 Z</p>
                     </div>
                 </div>
 
                 <div class="lg:col-span-2 space-y-6">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="glass-card p-6 border-t-4 border-t-ryanair-blue">
+                        <div class="glass-card p-6">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Airborne Hours</p>
-                            <p id="totalHours" class="text-4xl font-black text-ryanair-blue tracking-tighter">0.0</p>
+                            <p id="totalHours" class="text-4xl font-black text-ryanair-blue">0.0</p>
                         </div>
-                        <div class="glass-card p-6 border-t-4 border-t-ryanair-blue">
+                        <div class="glass-card p-6">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Avg Landing</p>
-                            <p id="avgLanding" class="text-4xl font-black text-ryanair-blue tracking-tighter">0 <span class="text-xs">FPS</span></p>
+                            <p id="avgLanding" class="text-4xl font-black text-ryanair-blue">0 <span class="text-xs">FPS</span></p>
                         </div>
                     </div>
 
-                    <div class="glass-card p-6">
-                        <h4 class="text-sm font-black text-ryanair-blue uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-                            Fleet Information: EGCC Base
-                        </h4>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="glass-card p-6 text-slate-800">
+                        <h4 class="text-xs font-black text-ryanair-blue uppercase tracking-widest mb-4">Fleet: EGCC Base</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
                             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                <p class="text-xs font-black text-slate-800">Boeing 737-800</p>
-                                <p class="text-[10px] text-slate-500 mt-1">Capacity: 189 Seats<br>Engines: CFM56-7B<br>Hub Status: Active</p>
+                                <p class="text-xs font-black text-slate-800">B737-800</p>
+                                <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">Seats: 189 | Hub: Active</p>
                             </div>
                             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                                <p class="text-xs font-black text-blue-600">737-8200 "Gamechanger"</p>
-                                <p class="text-[10px] text-slate-500 mt-1">Capacity: 197 Seats<br>Engines: CFM LEAP-1B<br>Hub Status: Deploying</p>
+                                <p class="text-xs font-black text-blue-600 italic">B737-8200</p>
+                                <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">Seats: 197 | Hub: Active</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-1 glass-card overflow-hidden border-t-4 border-t-ryanair-yellow">
+                <div class="lg:col-span-1 glass-card overflow-hidden">
                     <div class="bg-slate-50 p-3 border-b border-slate-100 flex justify-between items-center">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest">Company News</h4>
+                        <h4 class="text-[10px] font-black uppercase text-slate-400 tracking-widest">News & Alerts</h4>
                         <span class="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
                     </div>
-                    <div class="p-4 space-y-4 max-h-[400px] overflow-y-auto text-left">
+                    <div class="p-4 space-y-4 max-h-[400px] overflow-y-auto text-left text-slate-700">
                         <div class="border-b border-slate-50 pb-3">
-                            <span class="text-[8px] font-black text-blue-600">HUB OPS</span>
-                            <h5 class="text-xs font-black mt-0.5 uppercase italic">EGCC Stand 44 Reopened</h5>
-                            <p class="text-[10px] text-slate-500 mt-1">Maintenance on stand 44 is complete. All T3 gates now fully operational.</p>
+                            <h5 class="text-xs font-black uppercase italic">EGCC Hub Ops</h5>
+                            <p class="text-[10px] text-slate-500 mt-1">Stand 44 reopened. Manchester T3 fully operational.</p>
                         </div>
                         <div class="border-b border-slate-50 pb-3">
-                            <span class="text-[8px] font-black text-red-600">ALERT</span>
-                            <h5 class="text-xs font-black mt-0.5 uppercase italic">Storm Multiplier Active</h5>
-                            <p class="text-[10px] text-slate-500 mt-1">High winds at Manchester. 1.5x Pay Bonus applied to all EGCC arrivals.</p>
-                        </div>
-                        <div class="pb-3">
-                            <span class="text-[8px] font-black text-blue-600">FLEET</span>
-                            <h5 class="text-xs font-black mt-0.5 uppercase italic">New 8200 Arrival</h5>
-                            <p class="text-[10px] text-slate-500 mt-1">Registration EI-HGP delivered to base today for summer route expansion.</p>
+                            <h5 class="text-xs font-black uppercase text-red-600 italic">Storm Bonus</h5>
+                            <p class="text-[10px] text-slate-500 mt-1">1.5x Pay Bonus applied for all arrivals at EGCC today.</p>
                         </div>
                     </div>
                 </div>
@@ -134,27 +124,27 @@
 
         <div id="view-schedules" class="hidden space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-blue-900 p-6 rounded-2xl text-white border-l-8 border-ryanair-yellow shadow-xl relative overflow-hidden">
+                <div class="bg-blue-900 p-6 rounded-2xl text-white border-l-8 border-ryanair-yellow shadow-xl">
                     <h4 class="font-black italic text-ryanair-yellow text-xl uppercase mb-1">Manchester Weather Alert</h4>
-                    <p class="text-sm opacity-90">Arrivals at <span class="font-bold">EGCC</span> currently receive <span class="underline font-bold">1.5x Pay Multiplier</span> due to operational difficulty.</p>
+                    <p class="text-sm opacity-90">Arrivals at <span class="font-bold uppercase">EGCC</span> receive <span class="underline font-bold tracking-widest">1.5x PAY</span>.</p>
                 </div>
-                <div class="bg-white p-6 rounded-2xl border-l-8 border-green-500 shadow-xl flex justify-between items-center">
-                    <div>
+                <div class="glass-card p-6 border-l-8 border-green-500 shadow-xl flex justify-between items-center">
+                    <div class="text-left">
                         <h4 class="font-black italic text-green-600 text-xl uppercase mb-1">Featured Ops</h4>
-                        <p class="text-slate-500 font-bold">EGCC → LEPA (Palma)</p>
+                        <p class="text-slate-500 font-bold uppercase text-xs">EGCC → LEPA (Palma)</p>
                         <span class="inline-block bg-green-100 text-green-700 text-[9px] font-black px-2 py-1 rounded mt-2 uppercase">+ £200 Efficiency Bonus</span>
                     </div>
-                    <button onclick="briefFlight('RK3238', 'EGCC', 'LEPA', '2h 35m')" class="bg-green-600 text-white px-6 py-3 rounded-xl font-black uppercase text-xs shadow-lg hover:bg-green-700 transition-all">Fly Mission</button>
+                    <button onclick="briefFlight('RK3238', 'EGCC', 'LEPA', '2h 35m')" class="bg-green-600 text-white px-6 py-3 rounded-xl font-black uppercase text-xs shadow-lg hover:bg-green-700 transition-all">Fly Now</button>
                 </div>
             </div>
 
             <div class="glass-card p-8">
-                <div class="flex justify-between items-center mb-8">
+                <div class="flex justify-between items-center mb-8 border-b pb-4">
                     <h2 class="text-2xl font-black text-ryanair-blue italic uppercase tracking-tighter">Duty Assignments</h2>
-                    <div class="flex gap-1 bg-slate-100 p-1 rounded-lg">
-                        <button onclick="generateDuty(2)" class="px-5 py-2 rounded-md font-black text-[10px] uppercase hover:bg-white transition-all">2 Legs</button>
-                        <button onclick="generateDuty(4)" class="px-5 py-2 rounded-md font-black text-[10px] uppercase hover:bg-white transition-all">4 Legs</button>
-                        <button onclick="generateDuty(6)" class="px-5 py-2 rounded-md font-black text-[10px] uppercase hover:bg-white transition-all">6 Legs</button>
+                    <div class="flex gap-2 bg-slate-100 p-1 rounded-lg">
+                        <button onclick="generateDuty(2)" class="px-5 py-2 rounded-md font-black text-[10px] uppercase hover:bg-white text-slate-600 transition-all">2 Legs</button>
+                        <button onclick="generateDuty(4)" class="px-5 py-2 rounded-md font-black text-[10px] uppercase hover:bg-white text-slate-600 transition-all">4 Legs</button>
+                        <button onclick="generateDuty(6)" class="px-5 py-2 rounded-md font-black text-[10px] uppercase hover:bg-white text-slate-600 transition-all">6 Legs</button>
                     </div>
                 </div>
                 <div id="dutyResult" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
@@ -162,34 +152,34 @@
         </div>
 
         <div id="view-dispatch" class="hidden">
-            <div class="glass-card p-8 border-t-8 border-ryanair-blue">
+            <div class="glass-card p-8 text-slate-800">
                 <div class="flex flex-col lg:flex-row gap-10">
-                    <div class="lg:w-1/3 space-y-6">
-                        <h3 class="text-3xl font-black text-ryanair-blue italic uppercase underline decoration-ryanair-yellow">Flight Briefing</h3>
+                    <div class="lg:w-1/3 space-y-6 text-left">
+                        <h3 class="text-2xl font-black text-ryanair-blue italic uppercase tracking-tighter underline decoration-ryanair-yellow">Flight Briefing</h3>
                         
                         <div id="turnaroundTimer" class="hidden p-4 bg-red-600 text-white rounded-2xl animate-pulse text-center">
-                            <p class="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Ground Turnaround Time</p>
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-80 mb-1">Ground Turnaround</p>
                             <p id="timerDisplay" class="text-3xl font-black tabular-nums">25:00</p>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
                                 <label class="text-[9px] font-black text-slate-400 uppercase">Callsign</label>
-                                <p id="brfCall" class="text-xl font-black text-ryanair-blue">---</p>
+                                <p id="brfCall" class="text-xl font-black text-ryanair-blue italic">---</p>
                             </div>
                             <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <label class="text-[9px] font-black text-slate-400 uppercase">Stand</label>
+                                <label class="text-[9px] font-black text-slate-400 uppercase">Gate (EGCC)</label>
                                 <p id="brfGate" class="text-xl font-black text-slate-700">---</p>
                             </div>
                         </div>
 
                         <div class="space-y-4">
                             <div id="brfPushback" class="p-4 bg-slate-800 text-white rounded-xl text-xs italic opacity-90 leading-relaxed border-l-4 border-ryanair-yellow">
-                                Select a route to load pushback data...
+                                Select a route to load push data...
                             </div>
                             <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-xl">
-                                <p class="text-[10px] font-black text-blue-500 uppercase">Weather (ZULU)</p>
-                                <p class="text-xs font-mono mt-1 font-bold">EGCC 24012KT 9999 FEW025 12/08 Q1013</p>
+                                <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest">Weather (HUB)</p>
+                                <p class="text-xs font-mono mt-1 font-bold text-slate-600">EGCC 24012KT 9999 FEW025 12/08 Q1013</p>
                             </div>
                         </div>
 
@@ -203,11 +193,11 @@
         <div id="view-pirep" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-8">
             <div class="lg:col-span-1 space-y-6">
                 <div class="glass-card p-6 border-t-ryanair-yellow">
-                    <h3 class="font-black text-xs mb-4 uppercase text-slate-400 italic">Flight Log Upload</h3>
+                    <h3 class="font-black text-xs mb-4 uppercase text-slate-400 italic">Log Upload</h3>
                     <input type="file" id="kmlInput" accept=".kml" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-blue-50 file:text-ryanair-blue hover:file:bg-blue-100"/>
                 </div>
                 
-                <div id="pirepForm" class="hidden glass-card p-8 space-y-6">
+                <div id="pirepForm" class="hidden glass-card p-8 space-y-6 text-slate-800">
                     <div class="text-center font-black text-2xl italic tracking-tighter text-ryanair-blue uppercase">
                         <span id="depOut">---</span> ✈ <span id="arrOut">---</span>
                     </div>
@@ -220,17 +210,17 @@
                     <input type="number" id="landingRate" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-lg font-black text-blue-600 text-center text-xl" placeholder="Landing FPS">
 
                     <div class="bg-green-50 p-6 rounded-2xl text-center border border-green-200">
-                        <p class="text-[10px] font-black text-green-600 uppercase mb-1">Total Payout + Commission</p>
+                        <p class="text-[10px] font-black text-green-600 uppercase mb-1">Estimated Payout</p>
                         <p id="estPay" class="text-4xl font-black text-green-700">£0.00</p>
                     </div>
 
-                    <button onclick="saveFlight()" class="w-full bg-ryanair-blue text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-blue-900">Submit PIREP</button>
+                    <button onclick="saveFlight()" class="w-full bg-ryanair-blue text-white py-5 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-blue-900">Submit Log</button>
                 </div>
             </div>
             <div class="lg:col-span-3"><div id="map"></div></div>
         </div>
 
-        <div id="view-logbook" class="hidden glass-card p-10">
+        <div id="view-logbook" class="hidden glass-card p-10 text-slate-800">
             <h2 class="text-3xl font-black text-ryanair-blue italic mb-8 uppercase underline decoration-ryanair-yellow tracking-tighter">Pilot Logbook</h2>
             <table class="w-full text-left text-sm">
                 <thead>
@@ -245,7 +235,10 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- DATA & LOGIC ---
+        // --- SCRIPT LOGIC ---
+        let airportDb = [];
+        let currentFlight = { dep: "", arr: "", hrs: 0, pay: 0, sales: 0 };
+        let timerInterval;
         const ryanairRoutes = [
             { call: "RK552", dep: "EGCC", arr: "EIDW", name: "Dublin", time: "0h 50m" },
             { call: "RK553", dep: "EIDW", arr: "EGCC", name: "Manchester", time: "0h 50m" },
@@ -253,23 +246,8 @@
             { call: "RK3239", dep: "LEPA", arr: "EGCC", name: "Manchester", time: "2h 35m" },
             { call: "RK4087", dep: "EGCC", arr: "LEAL", name: "Alicante", time: "2h 45m" },
             { call: "RK4088", dep: "LEAL", arr: "EGCC", name: "Manchester", time: "2h 45m" },
-            { call: "RK6816", dep: "EGCC", arr: "LKPR", name: "Prague", time: "2h 10m" },
-            { call: "RK1029", dep: "EGCC", arr: "EHAM", name: "Amsterdam", time: "1h 15m" }
+            { call: "RK6816", dep: "EGCC", arr: "LKPR", name: "Prague", time: "2h 10m" }
         ];
-
-        const egccStandInfo = {
-            44: "Push facing North on Papa. Caution T1 traffic.",
-            45: "Push facing North on Papa.",
-            46: "Push facing South. Advise Ground for taxi via Hotel.",
-            47: "Push facing South.",
-            48: "Standard push back facing North.",
-            49: "Short push back. Caution Stand 50.",
-            51: "Push facing East on Link Papa."
-        };
-
-        let airportDb = [];
-        let currentFlight = { dep: "", arr: "", hrs: 0, pay: 0, sales: 0 };
-        let timerInterval;
 
         const map = L.map('map').setView([53.347, -2.283], 6);
         const bMap = L.map('briefingMap').setView([53.347, -2.283], 6);
@@ -288,9 +266,9 @@
                         return { ident: c[0], lat: parseFloat(c[1]), lon: parseFloat(c[2]) };
                     }).filter(a => !isNaN(a.lat));
                     document.getElementById('dbStatus').innerText = "DB: ONLINE (" + airportDb.length + ")";
-                    document.getElementById('dbStatus').classList.replace('bg-red-600', 'bg-green-600');
+                    document.getElementById('dbStatus').className = "text-[10px] bg-green-600 px-3 py-1 rounded-full text-white font-black uppercase";
                 }
-            } catch (e) { console.log("DB failed"); }
+            } catch (e) { console.log("DB Load Error"); }
             updateStats();
             loadLog();
         };
@@ -335,7 +313,6 @@
             document.getElementById('brfPax').innerText = Math.floor(Math.random() * 49) + 140;
             const gate = dep === "EGCC" ? Math.floor(Math.random() * 7) + 44 : "TBC";
             document.getElementById('brfGate').innerText = gate;
-            document.getElementById('brfPushback').innerText = dep === "EGCC" ? egccStandInfo[gate] : "Standard procedure.";
             document.getElementById('brfArrIcaoDisplay').innerText = "ICAO: " + arr;
             
             const dD = airportDb.find(a => a.ident === dep), aD = airportDb.find(a => a.ident === arr);
@@ -441,7 +418,7 @@
             document.getElementById('totalEarnings').innerText = "£" + s.pay.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('totalHours').innerText = s.hours.toFixed(1);
             document.getElementById('totalFlightsCount').innerText = s.count;
-            document.getElementById('avgLanding').innerText = s.count ? Math.round(s.landing/s.count) + " FPS" : "0 FPS";
+            document.getElementById('avgLanding').innerText = s.count ? Math.round(s.landing/s.count) : "0";
             document.getElementById('pilotRank').innerText = r.title;
             document.getElementById('payGradeDisplay').innerText = "£" + r.rate + "/hr";
         }
@@ -454,8 +431,8 @@
                     <td class="p-4 opacity-40 text-[10px]">${f.date}</td>
                     <td class="p-4 text-ryanair-blue">${f.route}</td>
                     <td class="p-4 text-slate-400 font-black">${parseFloat(f.duration || 0).toFixed(1)}</td>
-                    <td class="p-4 text-green-600 italic">£${parseFloat(f.earnings || 0).toFixed(2)}</td>
-                    <td class="p-4 ${f.grade.class}">${f.grade.text} <span class="opacity-20">(${f.landing})</span></td>
+                    <td class="p-4 text-green-600 font-black italic">£${parseFloat(f.earnings || 0).toFixed(2)}</td>
+                    <td class="p-4 font-black ${f.grade.class}">${f.grade.text} <span class="opacity-20 text-[10px]">(${f.landing})</span></td>
                     <td class="p-4"><button onclick="del(${i})" class="text-slate-300 hover:text-red-500">×</button></td>
                 </tr>
             `).join('');
