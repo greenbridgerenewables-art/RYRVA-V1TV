@@ -179,7 +179,7 @@
                         <input type="number" id="landingRate" class="w-full p-4 bg-slate-50 border rounded-lg font-black text-center text-xl" placeholder="e.g. -150">
                     </div>
 
-                    <div class="bg-green-50 p-4 rounded-xl text-center border font-black text-green-700 text-2xl" id="estPay">£130.00</div>
+                    <div class="bg-green-50 p-4 rounded-xl text-center border font-black text-green-700 text-2xl" id="estPay">£0.00</div>
                     <button onclick="saveFlight()" class="w-full bg-ryanair-blue text-white py-4 rounded-xl font-black uppercase shadow-lg hover:bg-blue-900 transition-colors">Submit PIREP</button>
                 </div>
             </div>
@@ -433,7 +433,10 @@
                 
                 // Get Cloud DB
                 const docRef = db.collection("pilots").doc(currentUser.uid);
-                const d = (await docRef.get()).data();
+                const docSnap = await docRef.get();
+                let d = docSnap.data();
+                
+                // Safety check
                 if(!d.logs) d.logs = [];
 
                 // Create Log Entry
