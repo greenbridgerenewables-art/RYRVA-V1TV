@@ -7,32 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-    
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #1e293b; }
         .bg-ryanair-blue { background-color: #003399; }
         .text-ryanair-yellow { color: #f1c40f; }
         .tab-active { color: #f1c40f !important; border-bottom: 4px solid #f1c40f; font-weight: 900; }
-        .glass-card { background: #ffffff; border-radius: 1.25rem; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; border-top: 5px solid #003399; }
-        #map, #briefingMap { height: 480px; width: 100%; border-radius: 1rem; z-index: 1; border: 4px solid white; }
+        .glass-card { background: white; border-radius: 1.25rem; border-top: 5px solid #003399; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        #map, #briefingMap { height: 400px; width: 100%; border-radius: 1rem; border: 4px solid white; z-index: 1; }
         .hidden { display: none; }
         .duty-card { border-left: 6px solid #003399; background: white; transition: all 0.2s; cursor: pointer; }
+        .duty-card:hover { transform: translateX(5px); background: #f8fafc; }
     </style>
 </head>
 <body>
 
     <div id="authOverlay" class="fixed inset-0 bg-ryanair-blue z-[100] flex items-center justify-center p-4">
         <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl">
-            <h2 class="text-2xl font-black text-ryanair-blue mb-2 uppercase italic">Pilot Login</h2>
-            <div class="space-y-4 text-left">
-                <input type="email" id="authEmail" placeholder="Email" class="w-full p-3 bg-slate-50 border rounded-xl font-bold">
-                <input type="password" id="authPass" placeholder="Password" class="w-full p-3 bg-slate-50 border rounded-xl font-bold">
+            <h2 class="text-2xl font-black text-ryanair-blue mb-6 uppercase italic">Pilot Login</h2>
+            <div class="space-y-4">
+                <input type="email" id="authEmail" placeholder="Email" class="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none">
+                <input type="password" id="authPass" placeholder="Password" class="w-full p-3 bg-slate-50 border rounded-xl font-bold outline-none">
                 <button onclick="handleAuth('login')" class="w-full py-4 bg-ryanair-blue text-white rounded-xl font-black uppercase shadow-lg">Login</button>
-                <button onclick="handleAuth('register')" class="w-full py-2 text-ryanair-blue font-bold text-[10px] uppercase text-center block w-full">Register</button>
+                <button onclick="handleAuth('register')" class="w-full py-2 text-ryanair-blue font-bold text-[10px] uppercase">Register New Pilot ID</button>
             </div>
         </div>
     </div>
@@ -42,13 +41,13 @@
             <h1 class="text-2xl font-black italic uppercase tracking-tighter">RYANAIR <span class="text-ryanair-yellow">VIRTUAL</span></h1>
             <div class="flex items-center gap-4">
                 <div id="cloudStatus" class="text-[9px] bg-slate-500 px-3 py-1 rounded-full text-white font-black uppercase">Cloud: Offline</div>
-                <button onclick="logout()" class="text-[9px] bg-white/10 px-3 py-1 rounded-full text-white font-black">LOGOUT</button>
+                <button onclick="logout()" class="text-[9px] bg-white/10 px-3 py-1 rounded-full text-white font-black hover:bg-red-600 transition-all">LOGOUT</button>
             </div>
         </div>
     </nav>
 
-    <div class="bg-ryanair-blue text-white/70 border-t border-blue-400/30 shadow-lg">
-        <div class="container mx-auto flex space-x-8 px-4 text-[10px] font-black uppercase tracking-[0.2em] overflow-x-auto whitespace-nowrap">
+    <div class="bg-ryanair-blue text-white/70 border-t border-blue-400/30">
+        <div class="container mx-auto flex space-x-6 px-4 text-[10px] font-black uppercase tracking-widest overflow-x-auto whitespace-nowrap">
             <button onclick="showTab('profile')" id="tab-profile" class="py-4 tab-active">Profile</button>
             <button onclick="showTab('leaderboard')" id="tab-leaderboard" class="py-4">Leaderboard</button>
             <button onclick="showTab('schedules')" id="tab-schedules" class="py-4">Schedules</button>
@@ -59,68 +58,89 @@
     </div>
 
     <main class="container mx-auto my-8 px-4">
+        
         <div id="view-profile" class="space-y-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 text-center">
-                <div class="glass-card p-8">
-                    <div class="w-20 h-20 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center border-2 border-ryanair-blue font-black text-ryanair-blue">RYR</div>
-                    <input type="text" id="pilotName" class="text-xl font-black text-center w-full mb-1 outline-none bg-transparent" value="..." onchange="updatePilotData('name', this.value)">
-                    <p id="pilotRank" class="text-[10px] font-black text-blue-600 uppercase mb-6 italic tracking-widest">Junior FO</p>
-                    <div class="bg-green-600 rounded-xl p-4 text-white shadow-lg"><p id="totalEarnings" class="text-3xl font-black">£0.00</p></div>
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-1 glass-card p-8 text-center">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-blue-50 rounded-full flex items-center justify-center border-2 border-ryanair-blue font-black text-ryanair-blue italic text-xl">RYR</div>
+                    <input type="text" id="pilotName" class="text-xl font-black text-center w-full outline-none bg-transparent" value="..." onchange="updatePilotData('name', this.value)">
+                    <p id="pilotRank" class="text-[10px] font-black text-blue-600 uppercase mb-4 italic tracking-widest">Junior FO</p>
+                    <div class="bg-green-600 rounded-xl p-4 text-white font-black text-2xl shadow-lg mb-4" id="totalEarnings">£0.00</div>
+                    <div class="bg-slate-900 rounded-xl p-4 text-white shadow-2xl text-left">
+                        <p class="text-[9px] font-black text-ryanair-yellow uppercase mb-1">Zulu Clock</p>
+                        <p id="zuluClock" class="text-2xl font-black tabular-nums">00:00:00 Z</p>
+                    </div>
                 </div>
-                <div class="lg:col-span-2 grid grid-cols-2 gap-4">
-                    <div class="glass-card p-6"><p class="text-[10px] font-black uppercase text-slate-400">Hours</p><p id="totalHours" class="text-5xl font-black text-ryanair-blue">0.0</p></div>
-                    <div class="glass-card p-6"><p class="text-[10px] font-black uppercase text-slate-400">Next Leg</p><p id="nextLegDisplay" class="text-2xl font-black text-slate-800">No Active Duty</p></div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="glass-card p-6 text-left"><p class="text-[10px] font-black uppercase text-slate-400">Total Hours</p><p id="totalHours" class="text-5xl font-black text-ryanair-blue">0.0</p></div>
+                        <div class="glass-card p-6 text-left"><p class="text-[10px] font-black uppercase text-slate-400">Current Leg</p><p id="nextLegDisplay" class="text-xl font-black text-slate-800 italic">No Active Duty</p></div>
+                    </div>
+                    <div class="glass-card p-6 text-left">
+                        <h4 class="text-xs font-black text-ryanair-blue uppercase mb-4">EGCC Base Fleet</h4>
+                        <div class="grid grid-cols-2 gap-4 text-[10px] font-bold">
+                            <div class="p-4 bg-slate-50 rounded-xl border">B737-800 NG<p class="text-slate-400 font-normal mt-1 uppercase">Seats: 189 | Active</p></div>
+                            <div class="p-4 bg-slate-50 rounded-xl border">B737-8200 MAX<p class="text-slate-400 font-normal mt-1 uppercase">Seats: 197 | Active</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-1 glass-card overflow-hidden">
+                    <div class="bg-slate-50 p-3 border-b flex justify-between items-center text-[10px] font-black uppercase text-slate-400">Hub News <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span></div>
+                    <div class="p-4 space-y-4 text-left text-[10px] leading-relaxed">
+                        <div><h5 class="font-black text-red-600 uppercase">Weather Alert</h5><p class="text-slate-500 italic">Storm bonus active. 1.5x pay multiplier for EGCC arrivals.</p></div>
+                        <div class="border-t pt-2"><h5 class="font-black text-blue-600 uppercase">Network Update</h5><p class="text-slate-500 italic">Cloud Sync enabled. Check Leaderboard to see other pilots.</p></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="view-leaderboard" class="hidden glass-card p-8">
-            <h2 class="text-2xl font-black text-ryanair-blue italic mb-8 uppercase tracking-tighter">Global Pilot Leaderboard</h2>
-            <table class="w-full text-left">
-                <thead><tr class="text-[10px] font-black text-slate-400 uppercase border-b"><th class="p-4">Rank</th><th class="p-4">Pilot</th><th class="p-4 text-right">Hours</th></tr></thead>
+            <h2 class="text-2xl font-black text-ryanair-blue italic mb-6 uppercase">Global Leaderboard</h2>
+            <table class="w-full text-left text-sm">
+                <thead><tr class="text-[10px] font-black text-slate-400 uppercase border-b"><th class="p-4">Rank</th><th class="p-4">Pilot Name</th><th class="p-4 text-right">Total Hours</th></tr></thead>
                 <tbody id="leaderboardBody" class="divide-y font-bold"></tbody>
             </table>
         </div>
 
-        <div id="view-schedules" class="hidden glass-card p-8">
+        <div id="view-schedules" class="hidden glass-card p-8 text-left">
             <div class="flex justify-between items-center mb-8 border-b pb-4">
                 <h2 class="text-2xl font-black text-ryanair-blue italic uppercase">Duty Assignments</h2>
-                <div class="flex gap-2"><button onclick="generateDuty(2)" class="px-4 py-2 bg-slate-100 rounded font-black text-[10px]">2 Legs</button><button onclick="generateDuty(4)" class="px-4 py-2 bg-slate-100 rounded font-black text-[10px]">4 Legs</button></div>
+                <div class="flex gap-2">
+                    <button onclick="generateDuty(2)" class="px-4 py-2 bg-slate-100 rounded font-black text-[10px] uppercase">2 Legs</button>
+                    <button onclick="generateDuty(4)" class="px-4 py-2 bg-slate-100 rounded font-black text-[10px] uppercase">4 Legs</button>
+                </div>
             </div>
             <div id="dutyResult" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-            <div id="dutyActions" class="hidden mt-8 flex justify-center gap-4">
-                <button onclick="acceptDuty()" class="bg-ryanair-blue text-white px-10 py-3 rounded-xl font-black uppercase shadow-xl">Accept & Brief Leg 1</button>
+            <div id="dutyActions" class="hidden mt-8 text-center">
+                <button onclick="acceptDuty()" class="bg-ryanair-blue text-white px-10 py-3 rounded-xl font-black uppercase shadow-xl hover:bg-blue-900 transition-all">Accept Duty & Brief Leg 1</button>
             </div>
         </div>
 
-        <div id="view-dispatch" class="hidden glass-card p-8">
+        <div id="view-dispatch" class="hidden glass-card p-8 text-left">
             <div class="flex flex-col lg:flex-row gap-8">
                 <div class="lg:w-1/3 space-y-4">
-                    <h3 class="text-2xl font-black text-ryanair-blue italic uppercase italic">Briefing Room</h3>
+                    <h3 class="text-2xl font-black text-ryanair-blue italic uppercase">Briefing</h3>
                     <div id="turnaroundTimer" class="hidden p-6 bg-red-600 text-white rounded-2xl animate-pulse text-center">
-                        <p class="text-[10px] font-black uppercase mb-1">Turnaround Time</p>
+                        <p class="text-[10px] font-black uppercase mb-1">Turnaround Deadline</p>
                         <p id="timerDisplay" class="text-4xl font-black tabular-nums">25:00</p>
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border">
-                        <label class="text-[9px] font-black uppercase text-slate-400">Callsign</label>
-                        <p id="brfCall" class="text-2xl font-black text-ryanair-blue italic">---</p>
-                    </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border">
-                        <label class="text-[9px] font-black uppercase text-slate-400">Assigned Stand</label>
-                        <p id="brfGate" class="text-2xl font-black text-slate-800 italic">---</p>
-                    </div>
-                    <button onclick="startTurnaround()" class="w-full py-5 bg-ryanair-blue text-white rounded-2xl font-black uppercase shadow-xl">Accept Briefing</button>
+                    <div class="bg-slate-50 p-4 rounded-xl border"><label class="text-[9px] font-black text-slate-400 uppercase">Callsign</label><p id="brfCall" class="text-2xl font-black text-ryanair-blue">---</p></div>
+                    <div class="bg-slate-50 p-4 rounded-xl border"><label class="text-[9px] font-black text-slate-400 uppercase">Gate (EGCC)</label><p id="brfGate" class="text-2xl font-black">---</p></div>
+                    <button onclick="acceptBriefing()" class="w-full py-5 bg-ryanair-blue text-white rounded-2xl font-black uppercase shadow-xl">Start Turnaround</button>
                 </div>
                 <div class="lg:w-2/3"><div id="briefingMap"></div></div>
             </div>
         </div>
 
-        <div id="view-pirep" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-1 space-y-4">
-                <div class="glass-card p-6"><h3 class="font-black text-[10px] mb-4 uppercase text-slate-400">1. Upload KML</h3><input type="file" id="kmlInput" accept=".kml" class="text-[10px]"/></div>
-                <div id="pirepForm" class="hidden glass-card p-6 space-y-4">
-                    <div class="text-center font-black text-2xl text-ryanair-blue"><span id="depOut">---</span> ✈ <span id="arrOut">---</span></div>
-                    <input type="number" id="landingRate" class="w-full p-4 bg-slate-50 border rounded-lg font-black text-center" placeholder="FPS">
+        <div id="view-pirep" class="hidden grid grid-cols-1 lg:grid-cols-4 gap-6 text-left">
+            <div class="lg:col-span-1 glass-card p-6">
+                <p class="text-[10px] font-black uppercase text-slate-400 mb-4">Upload Flight (.KML)</p>
+                <input type="file" id="kmlInput" accept=".kml" class="text-[10px] w-full"/>
+                <div id="pirepForm" class="hidden mt-6 space-y-4">
+                    <div class="text-center font-black text-2xl text-ryanair-blue uppercase"><span id="depOut">---</span> ✈ <span id="arrOut">---</span></div>
+                    <input type="number" id="landingRate" class="w-full p-4 bg-slate-50 border rounded-lg font-black text-center" placeholder="Landing FPS">
                     <button onclick="saveFlight()" class="w-full bg-ryanair-blue text-white py-4 rounded-xl font-black uppercase">Submit PIREP</button>
                 </div>
             </div>
@@ -128,8 +148,11 @@
         </div>
 
         <div id="view-logbook" class="hidden glass-card p-10 text-left">
-            <h2 class="text-2xl font-black text-ryanair-blue italic mb-8 uppercase">Personal Log</h2>
-            <table class="w-full text-sm"><tbody id="logTableBody" class="divide-y font-bold"></tbody></table>
+            <h2 class="text-2xl font-black text-ryanair-blue italic mb-8 uppercase">Personal Logbook</h2>
+            <table class="w-full text-sm">
+                <thead><tr class="text-[10px] font-black text-slate-400 uppercase border-b"><th class="p-4">Date</th><th class="p-4">Route</th><th class="p-4 text-right">Hours</th><th class="p-4 text-right">Ldg</th></tr></thead>
+                <tbody id="logTableBody" class="divide-y font-bold"></tbody>
+            </table>
         </div>
     </main>
 
@@ -142,51 +165,58 @@
             projectId: "ryanair-virtual-e2265",
             storageBucket: "ryanair-virtual-e2265.firebasestorage.app",
             messagingSenderId: "794337019957",
-            appId: "1:794337019957:web:98f4db3cfdc3de6dc9c97c",
-            measurementId: "G-SPEQE8L8M2"
+            appId: "1:794337019957:web:98f4db3cfdc3de6dc9c97c"
         };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        let currentUser = null, currentDuty = [], airportDb = [];
+        const db = firebase.firestore(), auth = firebase.auth();
+        let currentUser = null, airportDb = [], currentDuty = [], currentLegIndex = 0;
 
-        // AUTH
+        // AUTH ENGINE
         async function handleAuth(type) {
-            const e = document.getElementById('authEmail').value, p = document.getElementById('authPass').value;
-            try { 
+            const e = document.getElementById('authEmail').value.trim();
+            const p = document.getElementById('authPass').value;
+            if(!e || !p) return alert("Email/Pass missing");
+            try {
                 if(type === 'register') {
-                    const res = await auth.createUserWithEmailAndPassword(e,p);
+                    const res = await auth.createUserWithEmailAndPassword(e, p);
                     await db.collection("pilots").doc(res.user.uid).set({ name: "New Pilot", logs: [], totalHours: 0, totalPay: 0 });
-                } else { await auth.signInWithEmailAndPassword(e,p); }
+                } else { await auth.signInWithEmailAndPassword(e, p); }
             } catch(err) { alert(err.message); }
         }
-        auth.onAuthStateChanged(user => {
-            if(user) { 
-                currentUser = user; 
-                document.getElementById('authOverlay').classList.add('hidden');
-                document.getElementById('cloudStatus').innerText = "Cloud: Sync Active";
-                document.getElementById('cloudStatus').classList.replace('bg-slate-500', 'bg-green-500');
-                initApp();
+        auth.onAuthStateChanged(u => {
+            if(u) { 
+                currentUser = u; 
+                document.getElementById('authOverlay').classList.add('hidden'); 
+                document.getElementById('cloudStatus').innerText = "Cloud: Authenticated";
+                document.getElementById('cloudStatus').className = "text-[9px] bg-green-500 px-3 py-1 rounded-full text-white font-black uppercase";
+                initApp(); 
             } else { document.getElementById('authOverlay').classList.remove('hidden'); }
         });
         function logout() { auth.signOut().then(() => window.location.reload()); }
 
         // NAVIGATION
+        const map = L.map('map').setView([53, -2], 6), bMap = L.map('briefingMap').setView([53, -2], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/hot/{z}/{x}/{y}.png').addTo(map);
+        L.layerGroup().addTo(bMap); L.tileLayer('https://{s}.tile.openstreetmap.org/hot/{z}/{x}/{y}.png').addTo(bMap);
+
         function showTab(t) {
             ['profile','leaderboard','schedules','dispatch','pirep','logbook'].forEach(id => {
                 document.getElementById('view-'+id).classList.toggle('hidden', id !== t);
-                document.getElementById('tab-'+id).className = t === id ? 'py-4 tab-active transition-all' : 'py-4 hover:text-white transition-all';
+                const btn = document.getElementById('tab-'+id);
+                if(btn) btn.className = (id === t) ? 'py-4 tab-active transition-all' : 'py-4 hover:text-white transition-all';
             });
-            if(t === 'leaderboard') loadLeaderboard();
             if(t === 'pirep') setTimeout(() => map.invalidateSize(), 200);
             if(t === 'dispatch') setTimeout(() => bMap.invalidateSize(), 200);
-            if(t === 'logbook') loadLog();
+            if(t === 'leaderboard') loadLeaderboard();
         }
 
-        // APP LOGIC
+        // CORE APP
         async function initApp() {
-            const snap = await db.collection("pilots").doc(currentUser.uid).get();
-            renderStats(snap.data());
+            const doc = await db.collection("pilots").doc(currentUser.uid).get();
+            const d = doc.data();
+            document.getElementById('pilotName').value = d.name;
+            document.getElementById('totalHours').innerText = d.totalHours.toFixed(1);
+            document.getElementById('totalEarnings').innerText = "£" + d.totalPay.toFixed(2);
             const res = await fetch('AirportListv1.csv');
             const text = await res.text();
             airportDb = text.split('\n').slice(1).map(l => {
@@ -194,46 +224,49 @@
             }).filter(a => !isNaN(a.lat));
         }
 
+        async function updatePilotData(field, val) {
+            await db.collection("pilots").doc(currentUser.uid).update({ [field]: val });
+        }
+
+        // SCHEDULES ENGINE
         function generateDuty(legs) {
-            currentDuty = [];
-            let lastArr = "EGCC";
+            currentDuty = []; currentLegIndex = 0;
             const ryanairRoutes = [
                 { call: "RK552", dep: "EGCC", arr: "EIDW", name: "Dublin" },
                 { call: "RK553", dep: "EIDW", arr: "EGCC", name: "Manchester" },
                 { call: "RK3238", dep: "EGCC", arr: "LEPA", name: "Palma" },
-                { call: "RK3239", dep: "LEPA", arr: "EGCC", name: "Manchester" }
+                { call: "RK3239", dep: "LEPA", arr: "EGCC", name: "Manchester" },
+                { call: "RK4087", dep: "EGCC", arr: "LEAL", name: "Alicante" },
+                { call: "RK1029", dep: "EGCC", arr: "EHAM", name: "Amsterdam" }
             ];
             const res = document.getElementById('dutyResult');
             res.innerHTML = "";
+            let last = "EGCC";
             for(let i=0; i<legs; i++) {
-                const possible = ryanairRoutes.filter(r => r.dep === lastArr);
+                const possible = ryanairRoutes.filter(r => r.dep === last);
                 const pick = possible[Math.floor(Math.random() * possible.length)];
                 currentDuty.push(pick);
-                res.innerHTML += `<div class="duty-card border p-4 rounded-xl">#${i+1}: ${pick.dep} → ${pick.arr}</div>`;
-                lastArr = pick.arr;
+                res.innerHTML += `<div class="duty-card border p-4 rounded-xl shadow-sm text-left">#${i+1}: ${pick.dep} → ${pick.arr}</div>`;
+                last = pick.arr;
             }
             document.getElementById('dutyActions').classList.remove('hidden');
         }
 
         function acceptDuty() {
-            const first = currentDuty[0];
-            document.getElementById('nextLegDisplay').innerText = `${first.call} (${first.dep}-${first.arr})`;
-            briefFlight(first.call, first.dep, first.arr);
-        }
-
-        function briefFlight(call, dep, arr) {
-            showTab('dispatch');
-            document.getElementById('brfCall').innerText = call;
-            document.getElementById('brfGate').innerText = dep === "EGCC" ? Math.floor(Math.random() * 10) + 40 : "Remote";
-            const dD = airportDb.find(a => a.ident === dep), aD = airportDb.find(a => a.ident === arr);
+            const leg = currentDuty[currentLegIndex];
+            document.getElementById('nextLegDisplay').innerText = `${leg.call} (${leg.dep}-${leg.arr})`;
+            document.getElementById('brfCall').innerText = leg.call;
+            document.getElementById('brfGate').innerText = leg.dep === "EGCC" ? "44" : "Remote";
+            const dD = airportDb.find(a => a.ident === leg.dep), aD = airportDb.find(a => a.ident === leg.arr);
             if(dD && aD) {
-                if(brfLayer) bMap.removeLayer(brfLayer);
-                brfLayer = L.polyline([[dD.lat, dD.lon], [aD.lat, aD.lon]], {color: '#003399', dashArray: '10, 10'}).addTo(bMap);
-                bMap.fitBounds(brfLayer.getBounds(), {padding:[50,50]});
+                bMap.eachLayer(l => { if(l instanceof L.Polyline) bMap.removeLayer(l); });
+                const line = L.polyline([[dD.lat, dD.lon], [aD.lat, aD.lon]], {color: '#003399', dashArray: '10, 10'}).addTo(bMap);
+                bMap.fitBounds(line.getBounds(), {padding:[50,50]});
             }
+            showTab('dispatch');
         }
 
-        function startTurnaround() {
+        function acceptBriefing() {
             document.getElementById('turnaroundTimer').classList.remove('hidden');
             let t = 25 * 60;
             const timer = setInterval(() => {
@@ -243,51 +276,53 @@
             }, 1000);
         }
 
-        // PIREP & SYNC
+        // PIREP & LOG
         document.getElementById('kmlInput').addEventListener('change', function(e) {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 const xml = new DOMParser().parseFromString(ev.target.result, "text/xml");
-                const coords = xml.getElementsByTagName("coordinates")[0].textContent.trim().split(/\s+/).map(c => {
+                const pts = xml.getElementsByTagName("coordinates")[0].textContent.trim().split(/\s+/).map(c => {
                     const p = c.split(','); return [parseFloat(p[1]), parseFloat(p[0])];
                 });
-                if(flLayer) map.removeLayer(flLayer);
-                flLayer = L.polyline(coords, {color: '#003399', weight: 4}).addTo(map);
-                map.fitBounds(flLayer.getBounds());
-                document.getElementById('depOut').innerText = findClosest(coords[0]).ident;
-                document.getElementById('arrOut').innerText = findClosest(coords[coords.length-1]).ident;
+                L.polyline(pts, {color: '#003399', weight: 4}).addTo(map);
+                map.fitBounds(L.polyline(pts).getBounds());
+                document.getElementById('depOut').innerText = findClosest(pts[0]).ident;
+                document.getElementById('arrOut').innerText = findClosest(pts[pts.length-1]).ident;
                 document.getElementById('pirepForm').classList.remove('hidden');
             };
             reader.readAsText(e.target.files[0]);
         });
 
         async function saveFlight() {
-            const docRef = db.collection("pilots").doc(currentUser.uid);
+            const hrs = 1.2, docRef = db.collection("pilots").doc(currentUser.uid);
             const data = (await docRef.get()).data();
-            const h = 1.2; // Example hrs
-            const log = { date: new Date().toLocaleDateString(), route: document.getElementById('depOut').innerText + "-" + document.getElementById('arrOut').innerText, duration: h, earnings: h*65, landing: document.getElementById('landingRate').value };
-            data.logs.unshift(log);
-            data.totalHours += h; data.totalPay += (h*65);
+            const log = { date: new Date().toLocaleDateString(), route: document.getElementById('depOut').innerText + "-" + document.getElementById('arrOut').innerText, duration: hrs, earnings: hrs*65, landing: document.getElementById('landingRate').value };
+            data.logs.unshift(log); data.totalHours += hrs; data.totalPay += (hrs*65);
             await docRef.set(data);
             
-            // Advance to next leg
-            currentDuty.shift();
-            if(currentDuty.length > 0) {
-                const next = currentDuty[0];
+            currentLegIndex++;
+            if(currentLegIndex < currentDuty.length) {
+                const next = currentDuty[currentLegIndex];
                 document.getElementById('nextLegDisplay').innerText = `${next.call} (${next.dep}-${next.arr})`;
             } else {
-                document.getElementById('nextLegDisplay').innerText = "No Active Duty";
+                document.getElementById('nextLegDisplay').innerText = "Duty Complete";
             }
-            
-            renderStats(data);
-            showTab('profile');
+            showTab('profile'); initApp();
         }
 
         async function loadLeaderboard() {
+            const body = document.getElementById('leaderboardBody');
+            body.innerHTML = '<tr><td colspan="3" class="p-8 text-center opacity-30">SCANNING RADAR...</td></tr>';
             const snap = await db.collection("pilots").get();
-            let pilots = []; snap.forEach(d => pilots.push({ name: d.data().name, h: d.data().totalHours }));
-            pilots.sort((a,b) => b.h - a.h);
-            document.getElementById('leaderboardBody').innerHTML = pilots.map((p,i) => `<tr><td class="p-4">#${i+1}</td><td class="p-4">${p.name}</td><td class="p-4 text-right">${p.h.toFixed(1)}</td></tr>`).join('');
+            let p = []; snap.forEach(d => p.push({n: d.data().name, h: d.data().totalHours}));
+            p.sort((a,b) => b.h - a.h);
+            body.innerHTML = p.map((u,i) => `<tr><td class="p-4 text-slate-300">#${i+1}</td><td class="p-4 text-ryanair-blue">${u.n}</td><td class="p-4 text-right">${u.h.toFixed(1)} HRS</td></tr>`).join('');
+        }
+
+        function loadLog() {
+            db.collection("pilots").doc(currentUser.uid).get().then(doc => {
+                document.getElementById('logTableBody').innerHTML = doc.data().logs.map(f => `<tr><td class="p-4 opacity-40 text-[10px]">${f.date}</td><td class="p-4 text-ryanair-blue">${f.route}</td><td class="p-4 text-right">${f.duration.toFixed(1)}</td><td class="p-4 text-right">${f.landing}</td></tr>`).join('');
+            });
         }
 
         function findClosest(c) {
@@ -297,12 +332,6 @@
                 if(d < min) { min = d; cl = ap; }
             });
             return cl;
-        }
-
-        function renderStats(d) {
-            document.getElementById('totalEarnings').innerText = "£" + d.totalPay.toFixed(2);
-            document.getElementById('totalHours').innerText = d.totalHours.toFixed(1);
-            document.getElementById('pilotRank').innerText = d.totalHours >= 50 ? "Captain" : "Junior FO";
         }
 
         setInterval(() => {
