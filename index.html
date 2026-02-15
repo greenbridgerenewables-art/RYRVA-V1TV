@@ -114,16 +114,33 @@
             </div>
         </div>
 
-        <div id="view-dispatch" class="hidden glass-card p-8 text-left">
+       <div id="view-dispatch" class="hidden glass-card p-8 text-left">
             <div class="flex flex-col lg:flex-row gap-8">
                 <div class="lg:w-1/3 space-y-4">
-                    <h3 class="text-2xl font-black text-ryanair-blue italic uppercase">Briefing Room</h3>
-                    <div id="turnaroundTimer" class="hidden p-4 bg-red-600 text-white rounded-xl animate-pulse text-center">
-                        <p id="timerDisplay" class="text-3xl font-black tabular-nums">25:00</p>
+                    <h3 class="text-2xl font-black text-ryanair-blue italic uppercase">Briefing & Dispatch</h3>
+                    
+                    <div id="turnaroundTimer" class="hidden space-y-4">
+                        <div class="p-4 bg-red-600 text-white rounded-xl text-center shadow-inner">
+                            <p class="text-[10px] font-black uppercase mb-1 opacity-80">Turnaround Time Remaining</p>
+                            <p id="timerDisplay" class="text-4xl font-black tabular-nums">25:00</p>
+                        </div>
+                        
+                        <div class="bg-slate-50 p-5 rounded-xl border space-y-4">
+                            <h4 class="text-[10px] font-black text-slate-400 uppercase border-b pb-2 mb-2">Ground Services Sync</h4>
+                            
+                            <div id="task-deboard" class="flex items-center gap-3 text-slate-400 transition-all"><div class="w-5 h-5 rounded flex items-center justify-center border-2 border-slate-300 font-black text-xs"></div><span class="text-sm font-bold">Deboarding</span></div>
+                            <div id="task-clean" class="flex items-center gap-3 text-slate-400 transition-all"><div class="w-5 h-5 rounded flex items-center justify-center border-2 border-slate-300 font-black text-xs"></div><span class="text-sm font-bold">Aircraft Cleaning</span></div>
+                            <div id="task-cater" class="flex items-center gap-3 text-slate-400 transition-all"><div class="w-5 h-5 rounded flex items-center justify-center border-2 border-slate-300 font-black text-xs"></div><span class="text-sm font-bold">Catering Service</span></div>
+                            <div id="task-fuel" class="flex items-center gap-3 text-slate-400 transition-all"><div class="w-5 h-5 rounded flex items-center justify-center border-2 border-slate-300 font-black text-xs"></div><span class="text-sm font-bold">Refueling</span></div>
+                            <div id="task-board" class="flex items-center gap-3 text-slate-400 transition-all"><div class="w-5 h-5 rounded flex items-center justify-center border-2 border-slate-300 font-black text-xs"></div><span class="text-sm font-bold">Boarding</span></div>
+                        </div>
                     </div>
-                    <div class="bg-slate-50 p-4 rounded-xl border"><label class="text-[9px] font-black text-slate-400">Callsign</label><p id="brfCall" class="text-xl font-black">---</p></div>
-                    <div class="bg-slate-50 p-4 rounded-xl border"><label class="text-[9px] font-black text-slate-400">Stand</label><p id="brfGate" class="text-xl font-black">---</p></div>
-                    <button onclick="acceptBriefing()" class="w-full py-4 bg-ryanair-blue text-white rounded-xl font-black uppercase hover:bg-blue-900 transition-colors">Start Turnaround</button>
+
+                    <div id="preflightPanel" class="space-y-4">
+                        <div class="bg-slate-50 p-4 rounded-xl border"><label class="text-[9px] font-black text-slate-400 uppercase">Callsign</label><p id="brfCall" class="text-2xl font-black text-ryanair-blue">---</p></div>
+                        <div class="bg-slate-50 p-4 rounded-xl border"><label class="text-[9px] font-black text-slate-400 uppercase">Stand</label><p id="brfGate" class="text-2xl font-black">---</p></div>
+                        <button id="btnStartTurnaround" onclick="acceptBriefing()" class="w-full py-4 bg-ryanair-blue text-white rounded-xl font-black uppercase hover:bg-blue-900 transition-colors shadow-lg">Request Ground Services</button>
+                    </div>
                 </div>
                 <div class="lg:w-2/3"><div id="briefingMap"></div></div>
             </div>
@@ -268,12 +285,60 @@
 
         function acceptBriefing() {
             document.getElementById('turnaroundTimer').classList.remove('hidden');
-            let t = 25 * 60;
+            document.getElementById('btnStartTurnaround').classList.add('hidden'); // Hide button once started
+            
+            let t = 25 * 60; // 25 minutes
+            
+            // Force first update immediately
+            updateGroundServices(25);
+            
             const timer = setInterval(() => {
-                t--; let m = Math.floor(t/60), s = t%60;
+                t--; 
+                let m = Math.floor(t/60);
+                let s = t % 60;
                 document.getElementById('timerDisplay').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                if(t <= 0) clearInterval(timer);
+                
+                // Update the checklist based on remaining minutes
+                updateGroundServices(m);
+
+                if(t <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('timerDisplay').innerText = "DEPARTURE";
+                }
             }, 1000);
+        }
+
+        function updateGroundServices(m) {
+            // Define when each service happens during the 25 min turnaround
+            const timeline = [
+                { id: 'task-deboard', activeEnd: 25, completeBy: 20 },
+                { id: 'task-clean', activeEnd: 21, completeBy: 16 },
+                { id: 'task-cater', activeEnd: 19, completeBy: 14 },
+                { id: 'task-fuel', activeEnd: 15, completeBy: 10 },
+                { id: 'task-board', activeEnd: 11, completeBy: 0 }
+            ];
+
+            timeline.forEach(task => {
+                const el = document.getElementById(task.id);
+                const box = el.querySelector('div');
+
+                if (m <= task.activeEnd && m > task.completeBy) {
+                    // Task is currently ACTIVE
+                    el.className = "flex items-center gap-3 text-ryanair-blue font-black transition-all";
+                    box.className = "w-5 h-5 rounded flex items-center justify-center border-2 border-ryanair-blue bg-ryanair-yellow text-ryanair-blue font-black text-xs animate-pulse";
+                    box.innerHTML = "↻";
+                } else if (m <= task.completeBy) {
+                    // Task is COMPLETED
+                    el.className = "flex items-center gap-3 text-slate-800 font-bold opacity-50 transition-all";
+                    box.className = "w-5 h-5 rounded flex items-center justify-center border-2 border-green-500 bg-green-500 text-white font-black text-xs";
+                    box.innerHTML = "✓";
+                } else {
+                    // Task is PENDING (waiting)
+                    el.className = "flex items-center gap-3 text-slate-400 transition-all";
+                    box.className = "w-5 h-5 rounded flex items-center justify-center border-2 border-slate-300 font-black text-xs";
+                    box.innerHTML = "";
+                }
+            });
         }
         
         function updatePayPreview() {
@@ -363,3 +428,4 @@
     </script>
 </body>
 </html>
+
